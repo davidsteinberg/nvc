@@ -1,0 +1,11 @@
+.Communication {
+  --margin: calc(var(--padding) / 2);
+  border-bottom: 1px solid lightgray;
+  padding-bottom: var(--padding);
+  margin-bottom: var(--padding);
+  font-size: var(--font-size);
+}
+
+.Communication > div {
+  margin-bottom: var(--margin);
+}
