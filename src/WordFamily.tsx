@@ -19,10 +19,12 @@ const WordFamily = (p: {
       >
         {word}
       </div>
-      {subwords.map((subword) => (
+      {subwords.map((subword, index) => (
         <div
           key={subword}
-          className={`subword bubble ${collapsed ? "collapsed" : ""}`}
+          className={`subword bubble ${collapsed ? "collapsed" : ""} ${
+            index === subwords.length - 1 ? "final" : ""
+          }`}
           onClick={(e) => {
             e.stopPropagation();
             onSelect(subword);

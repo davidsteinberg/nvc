@@ -1,6 +1,7 @@
 .Communication {
-  --margin: calc(var(--padding) / 2);
-  border-bottom: 1px solid lightgray;
+  --margin: calc(var(--padding) / 4);
+  --border-radius: calc(var(--padding) * 0.6);
+  border-bottom: var(--border);
   padding-bottom: var(--padding);
   margin-bottom: var(--padding);
   font-size: var(--font-size);
@@ -8,4 +9,16 @@
 
 .Communication > div {
   margin-bottom: var(--margin);
+}
+
+.Communication > .buttons {
+  margin-top: var(--padding);
+}
+
+.Communication > .buttons > button {
+  border: var(--border);
+  background-color: white;
+  border-radius: var(--border-radius);
+  color: black;
+  font-size: calc(var(--font-size) * 0.69);
 }

@@ -2,7 +2,7 @@ import "./Communication.css";
 import BlockHierarchy from "./BlockHierarchy";
 import FillInTheBlank from "./FillInTheBlank";
 import { feelings, needs } from "./data";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const prompts = {
   observation: "When I",
@@ -12,13 +12,15 @@ const prompts = {
   request: "Would you be willing to",
 };
 
-const combineWordsStrings = (p: { words: string[]; kind: string }) => {
-  const { words, kind } = p;
+const alertToAdd = (thing: string) => {
+  alert(`Make sure to add ${thing}!`);
+};
+
+const combineWordsStrings = (words: string[]) => {
   let wordsString = "";
 
   if (words.length === 0) {
-    alert(`Make sure to add some ${kind}!`);
-    return null;
+    throw Error("Cannot combine 0 words");
   } else if (words.length === 1) {
     wordsString = words[0];
   } else if (words.length === 2) {
@@ -33,30 +35,24 @@ const combineWordsStrings = (p: { words: string[]; kind: string }) => {
   return wordsString;
 };
 
+const copy = async (text: string) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    alert("Copied to clipboard!");
+  } catch (error) {
+    console.error(error);
+    alert(text);
+  }
+};
+
 const share = async (text: string) => {
   const data = { text };
-  let shared = false;
   if (navigator.canShare(data)) {
     try {
       await navigator.share(data);
-      shared = true;
-    } catch (error) {
-      console.error(error);
-      shared = true;
-    }
-  }
-  if (!shared) {
-    try {
-      await navigator.clipboard.writeText(text);
-      shared = true;
-      alert("Copied to clipboard!");
     } catch (error) {
       console.error(error);
     }
-  }
-
-  if (!shared) {
-    alert(text);
   }
 };
 
@@ -66,6 +62,65 @@ const Communication = () => {
   const [reason, setReason] = useState("");
   const [needWords, setNeedWords] = useState<string[]>([]);
   const [request, setRequest] = useState("");
+
+  const getText = useCallback(
+    (handler: (text: string) => void) => {
+      if (observation.length === 0) {
+        alertToAdd("an observation");
+        return;
+      }
+
+      if (feelingWords.length === 0) {
+        alertToAdd("some feelings");
+        return;
+      }
+
+      if (reason.length === 0) {
+        alertToAdd("a reason");
+        return;
+      }
+
+      if (needWords.length === 0) {
+        alertToAdd("some needs");
+        return;
+      }
+
+      const feelingWordsString = combineWordsStrings(feelingWords);
+      const needWordsString = combineWordsStrings(needWords);
+
+      const text = `${prompts.observation} ${observation},
+${prompts.feelings} ${feelingWordsString},
+${prompts.reason} ${reason}.
+${prompts.needs} ${needWordsString}.${
+        request.length === 0 ? "" : `\n${prompts.request} ${request}?`
+      }`;
+
+      handler(text);
+    },
+    [observation, feelingWords, reason, needWords, request]
+  );
+
+  useEffect(() => {
+    const handler = (event: KeyboardEvent) => {
+      const { key, metaKey } = event;
+
+      if (metaKey) {
+        if (key === "c") {
+          getText(copy);
+          event.preventDefault();
+        } else if (key === "s") {
+          getText(share);
+          event.preventDefault();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handler);
+
+    return () => {
+      window.removeEventListener("keydown", handler);
+    };
+  }, [getText]);
 
   return (
     <div className="Communication">
@@ -94,36 +149,10 @@ const Communication = () => {
         punctuation="?"
         onChange={(newRequest) => setRequest(newRequest)}
       />
-      <button
-        // disabled={true}
-        onClick={() => {
-          const feelingWordsString = combineWordsStrings({
-            words: feelingWords,
-            kind: "feelings",
-          });
-          if (feelingWordsString === null) {
-            return;
-          }
-
-          const needWordsString = combineWordsStrings({
-            words: needWords,
-            kind: "needs",
-          });
-          if (needWordsString === null) {
-            return;
-          }
-
-          const text = `${prompts.observation} ${observation},
-${prompts.feelings} ${feelingWordsString},
-${prompts.reason} ${reason}.
-${prompts.needs} ${needWordsString}.
-${prompts.request} ${request}?`;
-
-          share(text);
-        }}
-      >
-        Share
-      </button>
+      <div className="buttons">
+        <button onClick={() => getText(copy)}>Copy</button>
+        <button onClick={() => getText(share)}>Share</button>
+      </div>
     </div>
   );
 };

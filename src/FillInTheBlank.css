@@ -1,11 +1,12 @@
 .FillInTheBlank {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
 }
 
 .FillInTheBlank > .content {
   outline: none;
   padding-bottom: 0.2rem;
-  border-bottom: 1px solid lightgray;
-  min-width: 200px;
+  border-bottom: var(--border);
+  min-width: 50px;
 }
