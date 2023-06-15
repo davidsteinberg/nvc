@@ -19,6 +19,7 @@ const FillInTheBlank = (p: {
       <div
         className="content"
         ref={ref}
+        autoCapitalize="off"
         contentEditable={true}
         onInput={(e) =>
           onChange((e.target as HTMLDivElement).textContent ?? "")
