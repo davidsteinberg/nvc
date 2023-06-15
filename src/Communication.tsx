@@ -37,17 +37,58 @@ const combineWordsStrings = (words: string[]) => {
 
 const copy = async (text: string) => {
   try {
+    // Try with clipboard
     await navigator.clipboard.writeText(text);
     alert("Copied to clipboard!");
   } catch (error) {
     console.error(error);
-    alert(text);
+
+    // Try with execCommand
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+
+    Object.assign(textarea.style, {
+      position: "fixed",
+      top: 0,
+      right: 0,
+      width: "2rem",
+      height: "2rem",
+      padding: 0,
+      border: "none",
+      outline: "none",
+      boxShadow: "none",
+      background: "transparent",
+    });
+
+    document.body.appendChild(textarea);
+
+    textarea.focus();
+    textarea.select();
+
+    let copied = false;
+
+    try {
+      copied = document.execCommand("copy");
+    } catch (error) {
+      console.error(error);
+    }
+
+    document.body.removeChild(textarea);
+
+    if (copied) {
+      alert("Copied to clipboard!");
+    } else {
+      // Alert text as last resort
+      alert(
+        `Unfortunately copying isn't working right now! You can select and copy the text here:\n\n${text}`
+      );
+    }
   }
 };
 
 const share = async (text: string) => {
   const data = { text };
-  if (navigator.canShare(data)) {
+  if (navigator.canShare && navigator.canShare(data)) {
     try {
       await navigator.share(data);
     } catch (error) {
@@ -151,7 +192,9 @@ ${prompts.needs} ${needWordsString}.${
       />
       <div className="buttons">
         <button onClick={() => getText(copy)}>Copy</button>
-        <button onClick={() => getText(share)}>Share</button>
+        {navigator.canShare && navigator.canShare({ text: "text" }) ? (
+          <button onClick={() => getText(share)}>Share</button>
+        ) : null}
       </div>
     </div>
   );
